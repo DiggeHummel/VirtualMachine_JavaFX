@@ -3,7 +3,7 @@ package main;
 import java.io.File;
 
 import application.ApplicationController;
-import gui.FileChooser;
+import gui.FileManager;
 import util.CommandType;
 
 public class VirtualMachine {
@@ -15,13 +15,13 @@ public class VirtualMachine {
 	}
 	
 	public void vmToAsm() {
-		FileChooser fc = new FileChooser();
-		File selectedFile = fc.chooseFile();
+		FileManager fm = new FileManager();
+		File selectedFile = fm.chooseFile();
 		if(selectedFile != null) {
 			this.controller.setBeforeLabel("Before: .vm");
 			this.controller.setAfterLabel("After: .asm");
 			Parser parser = new Parser(selectedFile);
-			CodeWriter cw = new CodeWriter(new File(fc.getLastDirectory() + "/" + fc.getDataName() + ".asm"));
+			CodeWriter cw = new CodeWriter(new File(fm.getLastDirectory() + "/" + fm.getFileName() + ".asm"));
 			cw.setApplicationController(this.controller);
 			while(parser.hasNextCommand()) {
 				parser.advance();			
