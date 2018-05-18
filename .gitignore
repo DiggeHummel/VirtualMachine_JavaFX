@@ -1,10 +1,2 @@
-.metadata
-tmp/
-*.tmp
-*.bak
-*.swp
-*~.nib
-local.properties
-.settings/
-.loadpath
-.recommenders
+.gradle
+.project
