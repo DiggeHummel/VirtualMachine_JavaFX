@@ -10,4 +10,8 @@ public class StringModifier {
 		if(src.startsWith(marker)) return "";
 		return src;
 	}
+	
+	public static String substring(String src, int start, String until) {
+		return src.substring(start, src.indexOf(until));
+	}
 }

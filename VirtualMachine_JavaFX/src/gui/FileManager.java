@@ -3,8 +3,8 @@ package gui;
 import java.io.File;
 
 import javafx.stage.Stage;
+import util.StringModifier;
 import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 
 public class FileManager {
 
@@ -21,14 +21,14 @@ public class FileManager {
 	public File chooseFile() {
 		FileChooser chooser = new FileChooser();
 		chooser.setTitle(FileManager.DEFAULT);
-    	chooser.setSelectedExtensionFilter(new ExtensionFilter(".vm", "vm"));
+    	chooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter(".vm", ".vm"));
     	if(lastDirectory != null) chooser.setInitialDirectory(lastDirectory);
     	File selFile = chooser.showOpenDialog(new Stage());
     	if(selFile != null) {
     		lastDirectory = selFile.getParentFile();
-    		fileName = selFile.getName();
-    	}
-		return selFile;
+    		fileName = StringModifier.substring(selFile.getName(), 0, ".");
+    		return selFile;
+    	}else return null;		
 	}
 
 	public String getFileName() {
