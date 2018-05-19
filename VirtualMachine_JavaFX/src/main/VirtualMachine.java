@@ -8,6 +8,7 @@ import util.CommandType;
 
 public class VirtualMachine {
 	
+	/* GUI controller */
 	private final ApplicationController controller;
 	
 	public VirtualMachine(ApplicationController controller) {
@@ -25,25 +26,47 @@ public class VirtualMachine {
 			cw.setApplicationController(this.controller);
 			while(parser.hasNextCommand()) {
 				parser.advance();			
-				controller.addBeforeArea(parser.CommandToGUI());
+				this.controller.addBeforeArea(parser.CommandToGUI());
 				CommandType ct = parser.getCommandType();
-				if(ct != null) {
-					switch(ct) {
-					case C_ARITHMETIC:
-						cw.writeArithmetic(parser.getCommand());					
-						break;
-					case C_POP:
-						cw.writePushPop(parser.getCommand(), parser.arg1(), parser.arg2());
-						break;
-					case C_PUSH:
-						cw.writePushPop(parser.getCommand(), parser.arg1(), parser.arg2());
-						break;
-					default:
-						throw new IllegalArgumentException();
-					}
-				}
+				dereferenceCommand(ct, cw, parser);
 			}
 			cw.close();
+		}
+	}
+	
+	private void dereferenceCommand(CommandType ct, CodeWriter cw, Parser parser) {
+		if(ct != null) {
+			switch(ct) {
+			case C_ARITHMETIC:
+				cw.writeArithmetic(parser.getCommand());					
+				break;
+			case C_POP:
+				cw.writePushPop(parser.getCommand(), parser.arg1(), parser.arg2());
+				break;
+			case C_PUSH:
+				cw.writePushPop(parser.getCommand(), parser.arg1(), parser.arg2());
+				break;
+			case C_LABEL:
+				cw.writeLabel(parser.arg1());
+				break;
+			case C_GOTO:
+				cw.writeGoto(parser.arg1());
+				break;
+			case C_IF:
+				cw.writeIf(parser.arg1());
+				break;
+			case C_CALL:
+				cw.writeCall(parser.arg1(), parser.arg2());
+				break;
+			case C_RETURN:
+				cw.writeReturn();
+				break;
+			case C_FUNCTION:
+				cw.writeFunction(parser.arg1(), parser.arg2());
+				break;
+			default:
+				throw new IllegalArgumentException();
+			}
 		}
 	}
 }

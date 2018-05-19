@@ -8,139 +8,109 @@ import java.io.IOException;
 import application.ApplicationController;
 
 public class CodeWriter {
-	
+
 	/* fields */
-	private final String ARITHMETIC_A = "@SP\n" + "AM=M-1\n" + "D=M\n" + "A=A-1\n"; //!SP is reduced by 1
+	private final String ARITHMETIC_A = "@SP\n" + "AM=M-1\n" + "D=M\n" + "A=A-1\n"; // !SP is reduced by 1
 	private final String DISSOLVE_POINTER = "A=M\n";
-	
+
 	/* VAR */
 	private ApplicationController controller;
 	private BufferedWriter bw;
 	private int JMP_Count = 0;
-	
+
 	public CodeWriter(File outputFile) {
 		try {
 			this.bw = new BufferedWriter(new FileWriter(outputFile));
-	    }catch(IOException e){
-        	e.printStackTrace();
-        }
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
-	
+
 	public void setFileName(String fileName) {
-		//useless
+		// useless
 	}
-	
+
 	private String ARITHMETIC_JMP(String JMP_Case) {
-		return this.ARITHMETIC_A +
-				"D=M-D\n" +
-				"@PUT_TRUE" + JMP_Count + "\n" + 
-				"D;" + JMP_Case + "\n" + 
-				"@SP\n" +
-				"A=M-1\n" +
-				"M=0\n" +
-				"@SKIP" + JMP_Count + "\n" +
-				"0;JMP\n" + 
-				"(PUT_TRUE" + JMP_Count + ")\n" + 
-				"@SP\n" +
-				"A=M-1\n" +
-				"M=-1\n" +
-				"(SKIP" + JMP_Count + ")\n";
+		return this.ARITHMETIC_A + "D=M-D\n" + "@PUT_TRUE" + JMP_Count + "\n" + "D;" + JMP_Case + "\n" + "@SP\n"
+				+ "A=M-1\n" + "M=0\n" + "@SKIP" + JMP_Count + "\n" + "0;JMP\n" + "(PUT_TRUE" + JMP_Count + ")\n"
+				+ "@SP\n" + "A=M-1\n" + "M=-1\n" + "(SKIP" + JMP_Count + ")\n";
 	}
-	
+
 	public void writeArithmetic(String command) {
 		String code = "";
-		switch(command) {
-		case "add": 
+		switch (command) {
+		case "add":
 			code = this.ARITHMETIC_A + "M=M+D\n";
 			break;
-		case "sub": 
+		case "sub":
 			code = this.ARITHMETIC_A + "M=M-D\n";
 			break;
-		case "neg": 
+		case "neg":
 			code = "@SP\nA=M-1\nM=-M\n";
 			break;
-		case "eq": 
+		case "eq":
 			code = ARITHMETIC_JMP("JEQ");
 			JMP_Count++;
 			break;
-		case "lt": 
+		case "lt":
 			code = ARITHMETIC_JMP("JLT");
 			JMP_Count++;
 			break;
-		case "gt": 
+		case "gt":
 			code = ARITHMETIC_JMP("JGT");
 			JMP_Count++;
 			break;
-		case "and": 
+		case "and":
 			code = this.ARITHMETIC_A + "M=M&D\n";
 			break;
-		case "or": 
+		case "or":
 			code = this.ARITHMETIC_A + "M=M|D\n";
 			break;
-		case "not": 
+		case "not":
 			code = "@SP\nA=M-1\nM=!M\n";
 			break;
-			default: throw new IllegalArgumentException();
+		default:
+			throw new IllegalArgumentException();
 		}
 		write(code);
 	}
-	
+
 	private String PUSH(String segment, int index, String dissolvePTR) {
-		return "@" + segment + "\n" + 
-				dissolvePTR +
-				"D=A\n" +				 
-				"@" + index + "\n" + 
-				"A=A+D\n" + 
-				"D=M\n" +
-				"@SP\n" + 
-				"A=M\n" + 
-				"M=D\n" + 
-				"@SP\n" +
-				"M=M+1\n";
+		return "@" + segment + "\n" + dissolvePTR + "D=A\n" + "@" + index + "\n" + "A=A+D\n" + "D=M\n" + "@SP\n"
+				+ "A=M\n" + "M=D\n" + "@SP\n" + "M=M+1\n";
 	}
-	
+
 	private String POP(String segment, int index, String dissolvePTR) {
-		return "@" + segment + "\n" +
-				dissolvePTR + 
-				"D=A\n" +
-				"@" + index + "\n" + 
-				"D=A+D\n" + 
-				"@R13\n" + 
-				"M=D\n" +
-				"@SP\n" + 
-				"A=M-1\n" +
-				"D=M\n" + 
-				"@R13\n" +
-				"A=M\n" +
-				"M=D\n" + 
-				"@SP\n" +
-				"M=M-1\n";
+		return "@" + segment + "\n" + dissolvePTR + "D=A\n" + "@" + index + "\n" + "D=A+D\n" + "@R13\n" + "M=D\n"
+				+ "@SP\n" + "A=M-1\n" + "D=M\n" + "@R13\n" + "A=M\n" + "M=D\n" + "@SP\n" + "M=M-1\n";
 	}
-	
+
 	public void writePushPop(String command, String segment, int index) {
-		if(index < 0) throw new IllegalArgumentException();
+		if (index < 0)
+			throw new IllegalArgumentException();
 		String code = "";
-		switch(command) {
+		switch (command) {
 		case "push":
-			switch(segment) {
+			switch (segment) {
 			case "constant":
-				code = "@" +  index + "\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+				code = "@" + index + "\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
 				break;
 			case "pointer":
-				switch(index) {
+				switch (index) {
 				case 0:
 					code = PUSH("THIS", 0, "");
 					break;
 				case 1:
 					code = PUSH("THAT", 0, "");
 					break;
-					default: throw new IllegalArgumentException();
+				default:
+					throw new IllegalArgumentException();
 				}
 				break;
 			case "static":
 				code = PUSH("16", index, "");
 				break;
-			case "temp": 
+			case "temp":
 				code = PUSH("R5", index, "");
 				break;
 			case "local":
@@ -155,25 +125,26 @@ public class CodeWriter {
 			case "that":
 				code = PUSH("THAT", index, this.DISSOLVE_POINTER);
 				break;
-			}	
+			}
 			break;
 		case "pop":
-			switch(segment) {
+			switch (segment) {
 			case "pointer":
-				switch(index) {
+				switch (index) {
 				case 0:
 					code = POP("THIS", 0, "");
 					break;
 				case 1:
 					code = POP("THAT", 0, "");
 					break;
-					default: throw new IllegalArgumentException();
+				default:
+					throw new IllegalArgumentException();
 				}
 				break;
 			case "static":
 				code = POP("16", index, "");
 				break;
-			case "temp": 
+			case "temp":
 				code = POP("R5", index, "");
 				break;
 			case "local":
@@ -188,12 +159,41 @@ public class CodeWriter {
 			case "that":
 				code = POP("THAT", index, this.DISSOLVE_POINTER);
 				break;
-			}		
+			}
 			break;
-			default: throw new IllegalArgumentException();
-		}		
+		default:
+			throw new IllegalArgumentException();
+		}
 		write(code);
-	} 
+	}
+
+	public void writeInit() {
+		write("Assembler Code generated by VM\n");
+	}
+
+	public void writeLabel(String arg) {
+		write("(" + arg + ")\n");
+	}
+	
+	public void writeGoto(String arg) {
+		write("@" + arg +"\n0;JMP\n");
+	}
+	
+	public void writeIf(String arg) {
+		write("@SP\nA=M-1\nD=M\n@" + arg + "\nD;JNE\n");
+	}
+	
+	public void writeCall(String functionName, int numArgs) {
+		
+	}
+	
+	public void writeReturn() {
+		
+	}
+	
+	public void writeFunction(String functionName, int numLocals) {
+		
+	}
 	
 	private void write(String asmCode) {
 		try {
@@ -204,17 +204,17 @@ public class CodeWriter {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void close() {
 		try {
 			this.bw.close();
-		}catch(IOException e){
-        	e.printStackTrace();
-        }
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void setApplicationController(ApplicationController controller) {
-		this.controller = controller;		
+		this.controller = controller;
 	}
 
 }
