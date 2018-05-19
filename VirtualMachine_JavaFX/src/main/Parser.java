@@ -87,6 +87,7 @@ public class Parser {
 	}
 	
 	public int arg2() {
+		if(command[2].equals("")) return 0;
 		return Integer.parseInt(command[2]);
 	}
 	
