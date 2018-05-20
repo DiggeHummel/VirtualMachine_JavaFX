@@ -35,14 +35,14 @@ public class Command {
 		return this.src[0];
 	}
 
-	public String getSegment() {
+	public String getArg1() {
 		if (this.src.length >= 2)
 			return this.src[1];
 		else
 			return "";
 	}
 
-	public int getIndex() {
+	public int getArg2() {
 		if (this.src.length >= 2)
 			return Integer.parseInt(this.src[2]);
 		else
@@ -56,15 +56,12 @@ public class Command {
 			this.Translator_FLAG = Translator.JMP_FLAG;
 		} else if (arrayContains(this.arithmeticCommands, this.src[0])) {
 			this.type = CommandType.C_ARITHMETIC;
-			this.Translator_FLAG = Translator.ARITHMETIC_FLAG;
 		} else {
 			switch (this.src[0]) {
 			case "pop":
 				this.type = CommandType.C_POP;
 				if (this.src[1].equals("pointer"))
 					this.Translator_FLAG = Translator.POINTER_FLAG;
-				else
-					this.Translator_FLAG = Translator.POP_FLAG;
 				break;
 			case "push":
 				this.type = CommandType.C_PUSH;
@@ -72,23 +69,18 @@ public class Command {
 					this.Translator_FLAG = Translator.CONSTANT_FLAG;
 				else if (this.src[1].equals("pointer"))
 					this.Translator_FLAG = Translator.POINTER_FLAG;
-				else
-					this.Translator_FLAG = Translator.PUSH_FLAG;
 				break;
 			case "if-goto":
 				this.type = CommandType.C_IF;
-				this.Translator_FLAG = Translator.IF_FLAG;
 				break;
 			case "goto":
 				this.type = CommandType.C_GOTO;
-				this.Translator_FLAG = Translator.GOTO_FLAG;
 				break;
 			case "call":
 				this.type = CommandType.C_CALL;
 				break;
 			case "label":
 				this.type = CommandType.C_LABEL;
-				this.Translator_FLAG = Translator.LABEL_FLAG;
 				break;
 			case "return":
 				this.type = CommandType.C_RETURN;

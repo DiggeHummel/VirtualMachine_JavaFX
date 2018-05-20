@@ -5,20 +5,15 @@ import java.util.HashMap;
 public final class Translator {
 
 	/* public fields */
-	public static final String ARITHMETIC_FLAG = "arithmetic";
-	public static final String JMP_FLAG = "jmp";
-	public static final String PUSH_FLAG = "push";
-	public static final String POP_FLAG = "pop";
 	public static final String CONSTANT_FLAG = "cons";
 	public static final String POINTER_FLAG = "ptr";
-	public static final String LABEL_FLAG = "label";
-	public static final String GOTO_FLAG = "goto";
-	public static final String IF_FLAG = "if";
+	public static final String JMP_FLAG = "jmp";
 
 	/* final variables */
 	private final String DISSOLVE_POINTER = "A=M\n";
 	private final HashMap<String, String> map;
 
+	/* constructor */
 	public Translator() {
 		this.map = new HashMap<String, String>();
 		map.put("not", "@SP\nA=M-1\nM=!M\n");
@@ -35,31 +30,46 @@ public final class Translator {
 		map.put("that", "THAT");
 	}
 
-	public String getASMCode(String flag, String command, String segment, int index, int JMP_Count) {
-		switch (flag) {
-		case ARITHMETIC_FLAG:
-			return map.get(command);
-		case JMP_FLAG:
-			return ARITHMETIC_JMP(dissolveJMP(command), JMP_Count);
-		case PUSH_FLAG:
-			return PUSH(map.get(segment), index, isPointerSegment(segment));
-		case POP_FLAG:
-			return POP(map.get(segment), index, isPointerSegment(segment));
-		case CONSTANT_FLAG:
-			return CONSTANT(index);
-		case POINTER_FLAG:
-			return POINTER(command, segment, index);
-		case LABEL_FLAG:
-			return LABEL(segment);
-		case GOTO_FLAG:
-			return GOTO(segment);
-		case IF_FLAG:
-			return IF(segment);
+	
+	/* public methods */
+	public String getASMCode(Command c, int JMP_Count) {
+		switch (c.getType()) {
+		case C_ARITHMETIC:
+			if(c.getFlag().equals(JMP_FLAG))
+				return ARITHMETIC_JMP(dissolveJMP(c.getCommand()), JMP_Count);
+			else
+				return map.get(c.getCommand());
+		case C_PUSH:
+			if(c.getFlag().equals(CONSTANT_FLAG))
+				return CONSTANT(c.getArg2());
+			else if (c.getFlag().equals(POINTER_FLAG))
+				return POINTER(c.getCommand(), c.getArg1(), c.getArg2());
+			else
+				return PUSH(map.get(c.getArg1()), c.getArg2(), isPointerSegment(c.getArg1()));
+		case C_POP:
+			if (c.getFlag().equals(POINTER_FLAG))
+				return POINTER(c.getCommand(), c.getArg1(), c.getArg2());
+			else
+				return POP(map.get(c.getArg1()), c.getArg2(), isPointerSegment(c.getArg1()));
+		case C_LABEL:
+			return LABEL(c.getArg1());
+		case C_GOTO:
+			return GOTO(c.getArg1());
+		case C_IF:
+			return IF(c.getArg1());
+		case C_CALL:
+			return CALL(c.getArg1(), c.getArg2());
+		case C_RETURN:
+			return RETURN();
+		case C_FUNCTION:
+			return FUNCTION(c.getArg1(), c.getArg2());
 		default:
 			throw new IllegalArgumentException();
 		}
 	}
 
+	
+	/* private methods */
 	private String ARITHMETIC_JMP(String JMP_Case, int JMP_Count) {
 		return "@SP\n" + "AM=M-1\n" + "D=M\n" + "A=A-1\n" + "D=M-D\n" + "@PUT_TRUE" + JMP_Count + "\n" + "D;" + JMP_Case
 				+ "\n" + "@SP\n" + "A=M-1\n" + "M=0\n" + "@SKIP" + JMP_Count + "\n" + "0;JMP\n" + "(PUT_TRUE"
@@ -91,6 +101,18 @@ public final class Translator {
 
 	private String IF(String arg) {
 		return "@SP\n" + "A=M-1\n" + "D=M\n" + "@" + arg + "\n" + "D;JNE\n";
+	}
+	
+	private String CALL(String functionName, int numArgs) {
+		return "";
+	}
+	
+	private String RETURN() {
+		return "";
+	}
+	
+	private String FUNCTION(String functionName, int numLocals) {
+		return "";
 	}
 
 	private String POINTER(String command, String segment, int index) {
