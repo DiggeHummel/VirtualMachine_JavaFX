@@ -29,7 +29,7 @@ public final class Translator {
 		map.put("this", "THIS");
 		map.put("that", "THAT");
 	}
-
+	
 	
 	/* public methods */
 	public String getASMCode(Command c, int JMP_Count) {

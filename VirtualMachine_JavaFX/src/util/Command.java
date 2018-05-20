@@ -20,6 +20,7 @@ public class Command {
 		else
 			throw new IllegalArgumentException();
 		analyzeCommand();
+		if(this.Translator_FLAG == null) this.Translator_FLAG = "";
 	}
 
 	/* public methods */
