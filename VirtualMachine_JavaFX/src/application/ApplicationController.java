@@ -6,6 +6,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
+import main.VirtualMachine;
 
 public class ApplicationController {
 
@@ -29,11 +30,13 @@ public class ApplicationController {
 
     @FXML // fx:id="gridpane"
     private GridPane gridpane; // Value injected by FXMLLoader
+    
+    private VirtualMachine vm  = new VirtualMachine();
 
     @FXML
     void onAction(ActionEvent event) {
     	clearAreas();
-    	Main.compile();
+    	this.vm.vmToAsm(this);
     }
     
     public void setBeforeLabel(String value) {

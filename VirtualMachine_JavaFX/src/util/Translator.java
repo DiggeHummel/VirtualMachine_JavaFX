@@ -11,6 +11,9 @@ public final class Translator {
 	public static final String POP_FLAG = "pop";
 	public static final String CONSTANT_FLAG = "cons";
 	public static final String POINTER_FLAG = "ptr";
+	public static final String LABEL_FLAG = "label";
+	public static final String GOTO_FLAG = "goto";
+	public static final String IF_FLAG = "if";
 
 	/* final variables */
 	private final String DISSOLVE_POINTER = "A=M\n";
@@ -46,6 +49,12 @@ public final class Translator {
 			return CONSTANT(index);
 		case POINTER_FLAG:
 			return POINTER(command, segment, index);
+		case LABEL_FLAG:
+			return LABEL(segment);
+		case GOTO_FLAG:
+			return GOTO(segment);
+		case IF_FLAG:
+			return IF(segment);
 		default:
 			throw new IllegalArgumentException();
 		}
@@ -70,6 +79,18 @@ public final class Translator {
 
 	private String CONSTANT(int index) {
 		return "@" + index + "\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+	}
+
+	private String LABEL(String arg) {
+		return "(" + arg + ")\n";
+	}
+
+	private String GOTO(String arg) {
+		return "@" + arg + "\n" + "0;JMP\n";
+	}
+
+	private String IF(String arg) {
+		return "@SP\n" + "A=M-1\n" + "D=M\n" + "@" + arg + "\n" + "D;JNE\n";
 	}
 
 	private String POINTER(String command, String segment, int index) {
