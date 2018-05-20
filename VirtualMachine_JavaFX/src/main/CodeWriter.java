@@ -11,24 +11,28 @@ import util.Translator;
 
 public class CodeWriter {
 
-	/* VAR */
+	/* variables */
 	private ApplicationController controller;
 	private BufferedWriter bw;
 	private int JMP_Count = 0;
 	private final Translator translator;
 
-	public CodeWriter(File outputFile) {
-		this.translator = new Translator();
+	/* constructor */
+	public CodeWriter(File outputFile, ApplicationController controller) {
 		try {
 			this.bw = new BufferedWriter(new FileWriter(outputFile));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		this.translator = new Translator();
+		this.controller = controller;
 	}
 
+	
+	/* public methods */
 	public void writeCommand(Command c) {
 		try {
-			String code = translator.getASMCode(c.getFlag(), c.getCommand(), c.getSegment(), c.getIndex(), JMP_Count);
+			String code = translator.getASMCode(c, JMP_Count);
 			if (c.getFlag().equals(Translator.JMP_FLAG))
 				JMP_Count++;
 			code = code.replaceAll("\n", "\r\n");
@@ -47,17 +51,6 @@ public class CodeWriter {
 		}
 	}
 
-	public void writeCall(String functionName, int numArgs) {
-	}
-
-	public void writeReturn() {
-
-	}
-
-	public void writeFunction(String functionName, int numLocals) {
-
-	}
-
 	public void close() {
 		try {
 			this.bw.close();
@@ -65,9 +58,4 @@ public class CodeWriter {
 			e.printStackTrace();
 		}
 	}
-
-	public void setApplicationController(ApplicationController controller) {
-		this.controller = controller;
-	}
-
 }

@@ -24,8 +24,7 @@ public class VirtualMachine {
 		
 		// compile
 		Parser parser = new Parser(selFile);
-		CodeWriter cw = new CodeWriter(new File(fm.getLastDirectory() + "/" + fm.getFileName() + ".asm"));
-		cw.setApplicationController(controller);
+		CodeWriter cw = new CodeWriter(new File(fm.getLastDirectory() + "/" + fm.getFileName() + ".asm"), controller);
 		while(parser.hasNextCommand()) {
 			parser.advance();			
 			controller.addBeforeArea(parser.CommandToGUI());
