@@ -28,6 +28,9 @@ public final class Translator {
 		map.put("argument", "ARG");
 		map.put("this", "THIS");
 		map.put("that", "THAT");
+		map.put("eq", "JEQ");
+		map.put("lt", "JLT");
+		map.put("gt", "JGT");
 	}
 	
 	
@@ -36,7 +39,7 @@ public final class Translator {
 		switch (c.getType()) {
 		case C_ARITHMETIC:
 			if(c.getFlag().equals(JMP_FLAG))
-				return ARITHMETIC_JMP(dissolveJMP(c.getCommand()), JMP_Count);
+				return ARITHMETIC_JMP(map.get(c.getCommand()), JMP_Count);
 			else
 				return map.get(c.getCommand());
 		case C_PUSH:
@@ -136,18 +139,5 @@ public final class Translator {
 		if (segment.equals("local") || segment.equals("argument") || segment.equals("this") || segment.equals("that"))
 			return true;
 		return false;
-	}
-
-	private String dissolveJMP(String command) {
-		switch (command) {
-		case "eq":
-			return "JEQ";
-		case "lt":
-			return "JLT";
-		case "gt":
-			return "JGT";
-		default:
-			throw new IllegalArgumentException();
-		}
 	}
 }
