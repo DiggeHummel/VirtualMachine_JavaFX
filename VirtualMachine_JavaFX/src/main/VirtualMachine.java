@@ -8,7 +8,6 @@ import util.Command;
 
 public class VirtualMachine {
 	
-	
 	public VirtualMachine() {
 	}
 	

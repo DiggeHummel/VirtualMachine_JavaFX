@@ -15,6 +15,7 @@ public class CodeWriter {
 	private ApplicationController controller;
 	private BufferedWriter bw;
 	private int JMP_Count = 0;
+	private int Instruction_Count = -1;
 	private final Translator translator;
 
 	/* constructor */
@@ -28,11 +29,11 @@ public class CodeWriter {
 		this.controller = controller;
 	}
 
-	
 	/* public methods */
 	public void writeCommand(Command c) {
 		try {
-			String code = translator.getASMCode(c, JMP_Count);
+			this.Instruction_Count++;
+			String code = translator.getASMCode(c, JMP_Count, Instruction_Count);
 			if (c.getFlag().equals(Translator.JMP_FLAG))
 				JMP_Count++;
 			code = code.replaceAll("\n", "\r\n");
