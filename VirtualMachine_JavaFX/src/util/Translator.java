@@ -33,17 +33,16 @@ public final class Translator {
 		map.put("gt", "JGT");
 	}
 
-	
 	/* public methods */
-	public String getASMCode(Command c, int JMP_Count) {
+	public String getASMCode(Command c, int JMP_Count, int Instruction_Count) {
 		switch (c.getType()) {
 		case C_ARITHMETIC:
-			if(c.getFlag().equals(JMP_FLAG))
+			if (c.getFlag().equals(JMP_FLAG))
 				return ARITHMETIC_JMP(map.get(c.getCommand()), JMP_Count);
 			else
 				return map.get(c.getCommand());
 		case C_PUSH:
-			if(c.getFlag().equals(CONSTANT_FLAG))
+			if (c.getFlag().equals(CONSTANT_FLAG))
 				return CONSTANT(c.getArg2());
 			else if (c.getFlag().equals(POINTER_FLAG))
 				return POINTER(c.getCommand(), c.getArg1(), c.getArg2());
@@ -61,7 +60,7 @@ public final class Translator {
 		case C_IF:
 			return IF(c.getArg1());
 		case C_CALL:
-			return CALL(c.getArg1(), c.getArg2());
+			return CALL(c.getArg1(), c.getArg2(), Instruction_Count);
 		case C_RETURN:
 			return RETURN();
 		case C_FUNCTION:
@@ -71,7 +70,6 @@ public final class Translator {
 		}
 	}
 
-	
 	/* private methods */
 	private String ARITHMETIC_JMP(String JMP_Case, int JMP_Count) {
 		return "@SP\n" + "AM=M-1\n" + "D=M\n" + "A=A-1\n" + "D=M-D\n" + "@PUT_TRUE" + JMP_Count + "\n" + "D;" + JMP_Case
@@ -105,15 +103,22 @@ public final class Translator {
 	private String IF(String arg) {
 		return "@SP\n" + "A=M-1\n" + "D=M\n" + "@" + arg + "\n" + "D;JNE\n";
 	}
-	
-	private String CALL(String functionName, int numArgs) {
-		return "";
+
+	private String CALL(String functionName, int numArgs, int Instruction_Count) {
+		return pushToStack(Instruction_Count, true) + pushToStack("LCL", false) + pushToStack("ARG", false)
+				+ pushToStack("THIS", false) + pushToStack("THAT", false) + "@" + (numArgs + 5) + "\n" + "D=A\n"
+				+ "@SP\n" + "A=M\n" + "D=A-D\n" + "@ARG\n" + "M=D\n" + "@SP\n" + "D=A\n" + "@LCL\n" + "A=D\n"
+				+ GOTO(functionName);
 	}
-	
+
+	private String pushToStack(Object register, boolean direct) {
+		return "@" + register + "\n" + (direct ? "D=A\n" : "D=M\n") + "@SP\n" + "A=M\n" + "M=D" + "\n" + "A=A+1\n";
+	}
+
 	private String RETURN() {
 		return "";
 	}
-	
+
 	private String FUNCTION(String functionName, int numLocals) {
 		return "";
 	}
