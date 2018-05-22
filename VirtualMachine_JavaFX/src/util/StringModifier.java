@@ -8,6 +8,10 @@ public class StringModifier {
 	
 	public static String removeByMarker(String src, String marker) {
 		if(src.startsWith(marker)) return "";
+		int index = -1;
+		if((index = src.indexOf(marker)) > -1 ){
+			src = src.substring(0, index);
+		}
 		return src;
 	}
 	

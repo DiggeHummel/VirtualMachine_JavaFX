@@ -32,8 +32,7 @@ public final class Translator {
 		map.put("lt", "JLT");
 		map.put("gt", "JGT");
 	}
-	
-	
+
 	/* public methods */
 	public String getASMCode(Command c, int JMP_Count, int Instruction_Count) {
 		switch (c.getType()) {
@@ -71,6 +70,11 @@ public final class Translator {
 		}
 	}
 
+	public String writeInit() {
+		return "@256\n" + "D=A\n" + "@SP\n" + "M=D\n" + CALL("Sys.init", 0, 0);
+	}
+	
+	
 	/* private methods */
 	private String ARITHMETIC_JMP(String JMP_Case, int JMP_Count) {
 		return "@SP\n" + "AM=M-1\n" + "D=M\n" + "A=A-1\n" + "D=M-D\n" + "@PUT_TRUE" + JMP_Count + "\n" + "D;" + JMP_Case
@@ -106,22 +110,31 @@ public final class Translator {
 	}
 
 	private String CALL(String functionName, int numArgs, int Instruction_Count) {
-		return pushToStack(Instruction_Count, true) + pushToStack("LCL", false) + pushToStack("ARG", false)
+		return pushToStack("RETURN_" + Instruction_Count, true) + pushToStack("LCL", false) + pushToStack("ARG", false)
 				+ pushToStack("THIS", false) + pushToStack("THAT", false) + "@" + (numArgs + 5) + "\n" + "D=A\n"
-				+ "@SP\n" + "A=M\n" + "D=A-D\n" + "@ARG\n" + "M=D\n" + "@SP\n" + "D=A\n" + "@LCL\n" + "A=D\n"
+				+ "@SP\n" + "A=M\n" + "D=A-D\n" + "@ARG\n" + "M=D\n" + "@SP\n" + "D=M\n" + "@LCL\n" + "M=D\n"
 				+ GOTO(functionName);
 	}
 
-	private String pushToStack(Object register, boolean direct) {
-		return "@" + register + "\n" + (direct ? "D=A\n" : "D=M\n") + "@SP\n" + "A=M\n" + "M=D" + "\n" + "A=A+1\n";
+	private String pushToStack(String register, boolean direct) {
+		return "@" + register + "\n" + (direct ? "D=A\n" : "D=M\n") + "@SP\n" + "A=M\n" + "M=D\n" + "@SP\n" + "M=M+1\n";
 	}
 
 	private String RETURN() {
-		return "";
+		return "@LCL\n" + "D=M\n" + "@R11\n" + "M=D\n" + "@5\n" + "A=D-A\n" + "D=M\n" + "@R12\n" + "M=D\n"
+				+ POP("ARG", 0, false) + "@ARG\n" + "D=M\n" + "@SP\n" + "M=D+1\n" + frame("THAT", 1) + frame("THIS", 2)
+				+ frame("ARG", 3) + frame("LCL", 4) + "@R12\n" + "A=M\n" + "0;JMP\n";
+	}
+
+	private String frame(String register, int index) {
+		return "@" + index + "\n" + "D=A\n" + "@R11\n" + "A=A-D\n" + "D=M\n" + "@" + register + "\n" + "M=D\n";
 	}
 
 	private String FUNCTION(String functionName, int numLocals) {
-		return "";
+		String out = "(" + functionName + ")\n";
+		for (int i = 0; i < numLocals; i++)
+			out += "@SP\n" + "A=M\n" + "A=0\n" + "@SP\n" + "M=M+1\n";
+		return out;
 	}
 
 	private String POINTER(String command, String segment, int index) {
