@@ -39,7 +39,6 @@ public class Parser {
 			this.line = StringModifier.removeByMarker(this.line, "//");
 		}
 		while(this.line.equals(""));
-		System.out.println(line);
 		return true;
 	}
 	

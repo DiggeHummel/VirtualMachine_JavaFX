@@ -12,7 +12,11 @@ public final class Translator {
 	/* final variables */
 	private final String DISSOLVE_POINTER = "A=M\n";
 	private final HashMap<String, String> map;
-
+	
+	/* variables */
+	private boolean isInFunction = false;
+	private String functionName  = "";
+	
 	/* constructor */
 	public Translator() {
 		this.map = new HashMap<String, String>();
@@ -98,7 +102,7 @@ public final class Translator {
 	}
 
 	private String LABEL(String arg) {
-		return "(" + arg + ")\n";
+		return ((this.isInFunction) ? "(" + this.functionName + "$" : "(") + arg + ")\n";
 	}
 
 	private String GOTO(String arg) {
@@ -106,14 +110,14 @@ public final class Translator {
 	}
 
 	private String IF(String arg) {
-		return "@SP\n" + "A=M-1\n" + "D=M\n" + "@" + arg + "\n" + "D;JNE\n";
+		return "@SP\n" + "M=M-1\n" + "D=M\n" + "@" + arg + "\n" + "D;JNE\n";
 	}
 
 	private String CALL(String functionName, int numArgs, int Instruction_Count) {
 		return pushToStack("RETURN_" + Instruction_Count, true) + pushToStack("LCL", false) + pushToStack("ARG", false)
 				+ pushToStack("THIS", false) + pushToStack("THAT", false) + "@" + (numArgs + 5) + "\n" + "D=A\n"
 				+ "@SP\n" + "A=M\n" + "D=A-D\n" + "@ARG\n" + "M=D\n" + "@SP\n" + "D=M\n" + "@LCL\n" + "M=D\n"
-				+ GOTO(functionName);
+				+ GOTO(functionName) + "(" + "RETURN_" + Instruction_Count + ")\n";
 	}
 
 	private String pushToStack(String register, boolean direct) {
@@ -131,9 +135,11 @@ public final class Translator {
 	}
 
 	private String FUNCTION(String functionName, int numLocals) {
+		this.functionName = functionName;
+		this.isInFunction = true;
 		String out = "(" + functionName + ")\n";
 		for (int i = 0; i < numLocals; i++)
-			out += "@SP\n" + "A=M\n" + "A=0\n" + "@SP\n" + "M=M+1\n";
+			out += "@0\n" + "D=A\n" + "@SP\n" + "A=M\n" + "A=0\n" + "@SP\n" + "M=M+1\n";
 		return out;
 	}
 

@@ -1,6 +1,7 @@
 package gui;
 
 import java.io.File;
+import java.util.List;
 
 import javafx.stage.Stage;
 import util.StringModifier;
@@ -34,6 +35,17 @@ public class FileManager {
 			return null;
 	}
 
+	public List<File> chooseFiles() {
+		FileChooser chooser = new FileChooser();
+		chooser.setTitle(FileManager.DEFAULT);
+		chooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter(".asm", ".asm"));
+	
+		if (lastDirectory != null)
+			chooser.setInitialDirectory(lastDirectory);
+		List<File> selFiles = chooser.showOpenMultipleDialog(new Stage());
+		return selFiles;
+	}
+	
 	public String getFileName() {
 		return this.fileName;
 	}
