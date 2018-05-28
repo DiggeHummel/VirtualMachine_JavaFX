@@ -8,15 +8,16 @@ public final class Translator {
 	public static final String CONSTANT_FLAG = "cons";
 	public static final String POINTER_FLAG = "ptr";
 	public static final String JMP_FLAG = "jmp";
+	public static final String INIT_FLAG = "init";
 
 	/* final variables */
 	private final String DISSOLVE_POINTER = "A=M\n";
 	private final HashMap<String, String> map;
-	
+
 	/* variables */
 	private boolean isInFunction = false;
-	private String functionName  = "";
-	
+	private String functionName = "";
+
 	/* constructor */
 	public Translator() {
 		this.map = new HashMap<String, String>();
@@ -68,17 +69,19 @@ public final class Translator {
 		case C_RETURN:
 			return RETURN();
 		case C_FUNCTION:
-			return FUNCTION(c.getArg1(), c.getArg2());
+			if (c.getFlag().equals(INIT_FLAG))
+				return INIT();
+			else
+				return FUNCTION(c.getArg1(), c.getArg2());
 		default:
 			throw new IllegalArgumentException();
 		}
 	}
 
-	public String writeInit() {
-		return "@256\n" + "D=A\n" + "@SP\n" + "M=D\n" + CALL("Sys.init", 0, 0);
+	public String INIT() {
+		return "@256\n" + "D=A\n" + "@SP\n" + "M=D\n";
 	}
-	
-	
+
 	/* private methods */
 	private String ARITHMETIC_JMP(String JMP_Case, int JMP_Count) {
 		return "@SP\n" + "AM=M-1\n" + "D=M\n" + "A=A-1\n" + "D=M-D\n" + "@PUT_TRUE" + JMP_Count + "\n" + "D;" + JMP_Case
@@ -98,7 +101,7 @@ public final class Translator {
 	}
 
 	private String CONSTANT(int index) {
-		return "@" + index + "\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+		return "@" + index + "\n" + "D=A\n" + "@SP\n" + "A=M\n" + "M=D\n" + "@SP\n" + "M=M+1\n";
 	}
 
 	private String LABEL(String arg) {
@@ -125,13 +128,13 @@ public final class Translator {
 	}
 
 	private String RETURN() {
-		return "@LCL\n" + "D=M\n" + "@R11\n" + "M=D\n" + "@5\n" + "A=D-A\n" + "D=M\n" + "@R12\n" + "M=D\n"
-				+ POP("ARG", 0, false) + "@ARG\n" + "D=M\n" + "@SP\n" + "M=D+1\n" + frame("THAT", 1) + frame("THIS", 2)
-				+ frame("ARG", 3) + frame("LCL", 4) + "@R12\n" + "A=M\n" + "0;JMP\n";
+		return "@LCL\n" + "D=M\n" + "@R13\n" + "M=D\n" + "@5\n" + "A=D-A\n" + "D=M\n" + "@R14\n" + "M=D\n" + "@SP\n"
+				+ "AM=M-1\n" + "D=M\n" + "@ARG\n" + "A=M\n" + "M=D\n" + "@ARG\n" + "D=M\n" + "@SP\n" + "M=D+1\n"
+				+ frame("THAT") + frame("THIS") + frame("ARG") + frame("LCL") + "@R14\n" + "A=M\n" + "0;JMP\n";
 	}
 
-	private String frame(String register, int index) {
-		return "@" + index + "\n" + "D=A\n" + "@R11\n" + "A=A-D\n" + "D=M\n" + "@" + register + "\n" + "M=D\n";
+	private String frame(String register) {
+		return "@R13\n" + "D=M-1\n" + "AM=D\n" + "D=M\n" + "@" + register + "\n" + "M=D\n";
 	}
 
 	private String FUNCTION(String functionName, int numLocals) {
@@ -139,7 +142,7 @@ public final class Translator {
 		this.isInFunction = true;
 		String out = "(" + functionName + ")\n";
 		for (int i = 0; i < numLocals; i++)
-			out += "@0\n" + "D=A\n" + "@SP\n" + "A=M\n" + "A=0\n" + "@SP\n" + "M=M+1\n";
+			out += CONSTANT(0);
 		return out;
 	}
 

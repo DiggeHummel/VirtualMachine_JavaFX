@@ -45,7 +45,7 @@ public class Command {
 
 	public int getArg2() {
 		if (this.src.length >= 2)
-			return Integer.parseInt(this.src[2]);
+			return Integer.parseInt(this.src[2].trim());
 		else
 			return 0;
 	}
@@ -88,6 +88,8 @@ public class Command {
 				break;
 			case "function":
 				this.type = CommandType.C_FUNCTION;
+				if(this.src[1].equals("Sys.init"))
+					this.Translator_FLAG = Translator.INIT_FLAG;
 				break;
 			default:
 				throw new IllegalArgumentException();

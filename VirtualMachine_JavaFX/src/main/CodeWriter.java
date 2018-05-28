@@ -44,17 +44,6 @@ public class CodeWriter {
 		}
 	}
 
-	public void writeInit() {
-		try {
-			String code = translator.writeInit();
-			code = code.replaceAll("\n", "\r\n");
-			this.controller.addAfterArea(code);
-			bw.write(code);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
 	public void close() {
 		try {
 			this.bw.close();
