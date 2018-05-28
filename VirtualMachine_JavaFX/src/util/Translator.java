@@ -70,7 +70,7 @@ public final class Translator {
 			return RETURN();
 		case C_FUNCTION:
 			if (c.getFlag().equals(INIT_FLAG))
-				return INIT();
+				return INIT(Instruction_Count);
 			else
 				return FUNCTION(c.getArg1(), c.getArg2());
 		default:
@@ -78,11 +78,11 @@ public final class Translator {
 		}
 	}
 
-	public String INIT() {
-		return "@256\n" + "D=A\n" + "@SP\n" + "M=D\n";
+	/* private methods */
+	private String INIT(int Intsruction_Count) {
+		return "@256\n" + "D=A\n" + "@SP\n" + "M=D\n" + CALL("Sys.init", 0, Intsruction_Count);
 	}
 
-	/* private methods */
 	private String ARITHMETIC_JMP(String JMP_Case, int JMP_Count) {
 		return "@SP\n" + "AM=M-1\n" + "D=M\n" + "A=A-1\n" + "D=M-D\n" + "@PUT_TRUE" + JMP_Count + "\n" + "D;" + JMP_Case
 				+ "\n" + "@SP\n" + "A=M-1\n" + "M=0\n" + "@SKIP" + JMP_Count + "\n" + "0;JMP\n" + "(PUT_TRUE"
@@ -117,10 +117,11 @@ public final class Translator {
 	}
 
 	private String CALL(String functionName, int numArgs, int Instruction_Count) {
-		return pushToStack("RETURN_" + Instruction_Count, true) + pushToStack("LCL", false) + pushToStack("ARG", false)
-				+ pushToStack("THIS", false) + pushToStack("THAT", false) + "@" + (numArgs + 5) + "\n" + "D=A\n"
-				+ "@SP\n" + "A=M\n" + "D=A-D\n" + "@ARG\n" + "M=D\n" + "@SP\n" + "D=M\n" + "@LCL\n" + "M=D\n"
-				+ GOTO(functionName) + "(" + "RETURN_" + Instruction_Count + ")\n";
+		return ("@RETURN_ADDRESS" + Instruction_Count + "\n") + "D=A\n" + "@SP\n" + "A=M\n" + "M=D\n" + "@SP\n"
+				+ "M=M+1\n" + pushToStack("LCL", false) + pushToStack("ARG", false) + pushToStack("THIS", false)
+				+ pushToStack("THAT", false) + "@" + (numArgs + 5) + "\n" + "D=A\n" + "@SP\n" + "A=M\n" + "D=A-D\n"
+				+ "@ARG\n" + "M=D\n" + "@SP\n" + "D=M\n" + "@LCL\n" + "M=D\n" + GOTO(functionName) + "(" + "RETURN_"
+				+ Instruction_Count + ")\n";
 	}
 
 	private String pushToStack(String register, boolean direct) {
