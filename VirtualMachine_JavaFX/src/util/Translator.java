@@ -15,8 +15,8 @@ public final class Translator {
 	private final HashMap<String, String> map;
 
 	/* variables */
-	private boolean isInFunction = false;
 	private String functionName = "";
+	private int[] counters = { -1, 0, 0 }; // Instruction[0] LABEL[1] JMP[2]
 
 	/* constructor */
 	public Translator() {
@@ -39,12 +39,16 @@ public final class Translator {
 	}
 
 	/* public methods */
-	public String getASMCode(Command c, int JMP_Count, int Instruction_Count) {
+	public String getASMCode(Command c) {
+		/*
+		 * if (c.getType() != CommandType.C_LABEL) counters[0]++;
+		 */
 		switch (c.getType()) {
 		case C_ARITHMETIC:
-			if (c.getFlag().equals(JMP_FLAG))
-				return ARITHMETIC_JMP(map.get(c.getCommand()), JMP_Count);
-			else
+			if (c.getFlag().equals(JMP_FLAG)) {
+				counters[2]++;
+				return ARITHMETIC_JMP(map.get(c.getCommand()));
+			} else
 				return map.get(c.getCommand());
 		case C_PUSH:
 			if (c.getFlag().equals(CONSTANT_FLAG))
@@ -65,28 +69,38 @@ public final class Translator {
 		case C_IF:
 			return IF(c.getArg1());
 		case C_CALL:
-			return CALL(c.getArg1(), c.getArg2(), Instruction_Count);
+			counters[1]++;
+			return CALL(c.getArg1(), c.getArg2());
 		case C_RETURN:
 			return RETURN();
 		case C_FUNCTION:
-			if (c.getFlag().equals(INIT_FLAG))
-				return INIT(Instruction_Count);
-			else
+			this.functionName = c.getArg1();
+			if (c.getFlag().equals(INIT_FLAG)) {
+				String out = INIT();
+				return out;
+			} else
 				return FUNCTION(c.getArg1(), c.getArg2());
 		default:
 			throw new IllegalArgumentException();
 		}
 	}
 
-	/* private methods */
-	private String INIT(int Intsruction_Count) {
-		return "@256\n" + "D=A\n" + "@SP\n" + "M=D\n" + CALL("Sys.init", 0, Intsruction_Count);
+	public String bootstrap() {
+		this.functionName = "Sys.init";
+		String ret = INIT();
+		this.functionName = "";
+		return ret;
 	}
 
-	private String ARITHMETIC_JMP(String JMP_Case, int JMP_Count) {
-		return "@SP\n" + "AM=M-1\n" + "D=M\n" + "A=A-1\n" + "D=M-D\n" + "@PUT_TRUE" + JMP_Count + "\n" + "D;" + JMP_Case
-				+ "\n" + "@SP\n" + "A=M-1\n" + "M=0\n" + "@SKIP" + JMP_Count + "\n" + "0;JMP\n" + "(PUT_TRUE"
-				+ JMP_Count + ")\n" + "@SP\n" + "A=M-1\n" + "M=-1\n" + "(SKIP" + JMP_Count + ")\n";
+	/* private methods */
+	private String INIT() {
+		return "@256\n" + "D=A\n" + "@SP\n" + "M=D\n" + CALL("Sys.init", 0);
+	}
+
+	private String ARITHMETIC_JMP(String JMP_Case) {
+		return "@SP\n" + "AM=M-1\n" + "D=M\n" + "A=A-1\n" + "D=M-D\n" + "@PUT_TRUE" + counters[2] + "\n" + "D;"
+				+ JMP_Case + "\n" + "@SP\n" + "A=M-1\n" + "M=0\n" + "@SKIP" + counters[2] + "\n" + "0;JMP\n"
+				+ "(PUT_TRUE" + counters[2] + ")\n" + "@SP\n" + "A=M-1\n" + "M=-1\n" + "(SKIP" + counters[2] + ")\n";
 	}
 
 	private String PUSH(String segment, int index, boolean dissolvePTR) {
@@ -105,23 +119,23 @@ public final class Translator {
 	}
 
 	private String LABEL(String arg) {
-		return ((this.isInFunction) ? "(" + this.functionName + "$" : "(") + arg + ")\n";
+		return "(" + this.functionName + "$" + arg + ")\n";
 	}
 
 	private String GOTO(String arg) {
-		return "@" + arg + "\n" + "0;JMP\n";
+		return "@" + this.functionName + "$" + arg + "\n" + "0;JMP\n";
 	}
 
 	private String IF(String arg) {
-		return "@SP\n" + "M=M-1\n" + "D=M\n" + "@" + arg + "\n" + "D;JNE\n";
+		return "@SP\n" + "M=M-1\n" + "D=M\n" + "@" + this.functionName + "$" + arg + "\n" + "D;JNE\n";
 	}
 
-	private String CALL(String functionName, int numArgs, int Instruction_Count) {
-		return ("@RETURN_ADDRESS" + Instruction_Count + "\n") + "D=A\n" + "@SP\n" + "A=M\n" + "M=D\n" + "@SP\n"
-				+ "M=M+1\n" + pushToStack("LCL", false) + pushToStack("ARG", false) + pushToStack("THIS", false)
-				+ pushToStack("THAT", false) + "@" + (numArgs + 5) + "\n" + "D=A\n" + "@SP\n" + "A=M\n" + "D=A-D\n"
-				+ "@ARG\n" + "M=D\n" + "@SP\n" + "D=M\n" + "@LCL\n" + "M=D\n" + GOTO(functionName) + "(" + "RETURN_"
-				+ Instruction_Count + ")\n";
+	private String CALL(String functionName, int numArgs) {
+		return LABEL("@RETURN_ADDRESS" + counters[1]) + "D=A\n" + "@SP\n" + "A=M\n" + "M=D\n" + "@SP\n" + "M=M+1\n"
+				+ pushToStack("LCL", false) + pushToStack("ARG", false) + pushToStack("THIS", false)
+				+ pushToStack("THAT", false) + "@" + (numArgs + 5) + "\n" + "D=A\n" + "@SP\n" + /* evtl */"A=M\n"
+				+ "D=A-D\n" + "@ARG\n" + "M=D\n" + "@SP\n" + "D=M\n" + "@LCL\n" + "M=D\n" + "@" + functionName + "\n"
+				+ "0;JMP\n" + LABEL("RETURN_ADDRESS" + counters[1]);
 	}
 
 	private String pushToStack(String register, boolean direct) {
@@ -139,8 +153,6 @@ public final class Translator {
 	}
 
 	private String FUNCTION(String functionName, int numLocals) {
-		this.functionName = functionName;
-		this.isInFunction = true;
 		String out = "(" + functionName + ")\n";
 		for (int i = 0; i < numLocals; i++)
 			out += CONSTANT(0);

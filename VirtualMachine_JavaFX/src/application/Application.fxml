@@ -14,8 +14,7 @@
 		<HBox alignment="CENTER" spacing="20">
 			<Button fx:id="compileButton" mnemonicParsing="false"
 				onAction="#compileOnAction" text="new Compile"></Button>
-			<Button fx:id="mergeButton" mnemonicParsing="false"
-				onAction="#mergeOnAction" text="merge .asm Files"></Button>
+				<CheckBox fx:id="multipleFiles" text="multipleFiles"></CheckBox>
 			<TextField fx:id="fileNameField"></TextField>
 			<Label fx:id="errLabel" text="Dateiname fehlt" visible="false"></Label>
 		</HBox>

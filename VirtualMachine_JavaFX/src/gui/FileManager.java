@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.List;
 
 import javafx.stage.Stage;
-import util.StringModifier;
 import javafx.stage.FileChooser;
 
 public class FileManager {
@@ -20,32 +19,25 @@ public class FileManager {
 	public FileManager() {
 	}
 
-	public File chooseFile() {
-		FileChooser chooser = new FileChooser();
-		chooser.setTitle(FileManager.DEFAULT);
-		chooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter(".vm", ".vm"));
-		if (lastDirectory != null)
-			chooser.setInitialDirectory(lastDirectory);
-		File selFile = chooser.showOpenDialog(new Stage());
-		if (selFile != null) {
-			lastDirectory = selFile.getParentFile();
-			fileName = StringModifier.substring(selFile.getName(), 0, ".");
-			return selFile;
-		} else
-			return null;
-	}
-
 	public List<File> chooseFiles() {
+		// init Chooser
 		FileChooser chooser = new FileChooser();
 		chooser.setTitle(FileManager.DEFAULT);
 		chooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter(".asm", ".asm"));
-	
+
+		// last directory
 		if (lastDirectory != null)
 			chooser.setInitialDirectory(lastDirectory);
+
 		List<File> selFiles = chooser.showOpenMultipleDialog(new Stage());
+
+		// new last directory
+		if (selFiles != null)
+			lastDirectory = selFiles.get(0).getParentFile();
+
 		return selFiles;
 	}
-	
+
 	public String getFileName() {
 		return this.fileName;
 	}

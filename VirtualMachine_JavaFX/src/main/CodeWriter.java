@@ -14,8 +14,6 @@ public class CodeWriter {
 	/* variables */
 	private ApplicationController controller;
 	private BufferedWriter bw;
-	private int JMP_Count = 0;
-	private int Instruction_Count = -1;
 	private final Translator translator;
 
 	/* constructor */
@@ -32,13 +30,25 @@ public class CodeWriter {
 	/* public methods */
 	public void writeCommand(Command c) {
 		try {
-			this.Instruction_Count++;
-			String code = translator.getASMCode(c, JMP_Count, Instruction_Count);
-			if (c.getFlag().equals(Translator.JMP_FLAG))
-				JMP_Count++;
-			code = code.replaceAll("\n", "\r\n");
-			this.controller.addAfterArea(code);
+			String code = translator.getASMCode(c);
+			code = /*"//" + c.getCommand() + "\r\n" + */code.replaceAll("\n", "\r\n");
+			this.controller.addAfterArea("//" + c.getCommand() + "\r\n" + code);
 			bw.write(code);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void writeFileName(String fileName) {
+		try {
+			this.controller.addAfterArea("//new File: " + fileName);
+			//bw.write("//new File: " + fileName + "\r\n");
+			if (!fileName.equals("Sys.vm")) {
+				String boot = /*"//bootstrap \r\n" + */translator.bootstrap().replaceAll("\n", "\r\n");
+				this.controller.addAfterArea("//bootstrap \r\n" + boot);
+				bw.write(boot);
+			}
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
