@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import javafx.stage.Stage;
+import util.StringModifier;
 import javafx.stage.FileChooser;
 
 public class FileManager {
@@ -34,6 +35,9 @@ public class FileManager {
 		// new last directory
 		if (selFiles != null)
 			lastDirectory = selFiles.get(0).getParentFile();
+
+		// new last fileName
+		fileName = StringModifier.substring(selFiles.get(0).getName(), 0, ".");
 
 		return selFiles;
 	}

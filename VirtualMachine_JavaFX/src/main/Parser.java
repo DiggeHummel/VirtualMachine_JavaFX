@@ -8,7 +8,7 @@ import java.io.IOException;
 import util.StringModifier;
 
 public class Parser {
-	
+
 	/* variables */
 	private BufferedReader br;
 	private String line;
@@ -19,11 +19,11 @@ public class Parser {
 		try {
 			this.br = new BufferedReader(new FileReader(inputFile));
 			this.line = null;
-	    }catch(IOException e){
-        	e.printStackTrace();
-        }
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
-	
+
 	/* public methods */
 	public boolean hasNextCommand() {
 		do {
@@ -32,36 +32,35 @@ public class Parser {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			if(this.line == null) {
+			if (this.line == null) {
 				this.close();
 				return false;
 			}
 			this.line = StringModifier.removeByMarker(this.line, "//");
-		}
-		while(this.line.equals(""));
+		} while (this.line.equals(""));
 		return true;
 	}
-	
-	public void advance() {		
+
+	public void advance() {
 		this.command = this.line.split(" ");
-		if(this.command.length > 3) throw new IllegalArgumentException();
-	}	
-	
+		if (this.command.length > 3)
+			throw new IllegalArgumentException();
+	}
+
 	public String[] getCommand() {
 		return this.command;
 	}
-	
+
 	public String CommandToGUI() {
 		return this.line;
 	}
-	
-	
+
 	/* private methods */
 	private void close() {
 		try {
 			this.br.close();
-		}catch(IOException e){
-        	e.printStackTrace();
-        }
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

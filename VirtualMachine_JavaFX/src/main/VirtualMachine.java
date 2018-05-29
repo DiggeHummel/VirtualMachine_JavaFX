@@ -12,7 +12,7 @@ public class VirtualMachine {
 	public VirtualMachine() {
 	}
 
-	public void vmToAsm(ApplicationController controller, boolean multiple) {
+	public void vmToAsm(ApplicationController controller, boolean multiple, boolean bootstrap) {
 		// GUI Labels
 		controller.setBeforeLabel("Before: .vm");
 		controller.setAfterLabel("After: .asm");
@@ -37,7 +37,8 @@ public class VirtualMachine {
 		// compile
 		for (File in : selFiles) {
 			Parser parser = new Parser(in);
-			cw.writeFileName(in.getName());
+			if (bootstrap)
+				cw.writeFileName(in.getName());
 			while (parser.hasNextCommand()) {
 				parser.advance();
 				controller.addBeforeArea(parser.CommandToGUI());

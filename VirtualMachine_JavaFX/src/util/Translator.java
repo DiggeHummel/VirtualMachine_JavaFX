@@ -87,14 +87,14 @@ public final class Translator {
 
 	public String bootstrap() {
 		this.functionName = "Sys.init";
-		String ret = INIT();
+		String ret = "@256\n" + "D=A\n" + "@SP\n" + "M=D\n" + CALL("Sys.init", 0);
 		this.functionName = "";
 		return ret;
 	}
 
 	/* private methods */
 	private String INIT() {
-		return "@256\n" + "D=A\n" + "@SP\n" + "M=D\n" + CALL("Sys.init", 0);
+		return "@256\n" + "D=A\n" + "@SP\n" + "M=D\n" + CALL("Sys.init", 0) + "(Sys.init)\n";
 	}
 
 	private String ARITHMETIC_JMP(String JMP_Case) {
@@ -131,11 +131,11 @@ public final class Translator {
 	}
 
 	private String CALL(String functionName, int numArgs) {
-		return LABEL("@RETURN_ADDRESS" + counters[1]) + "D=A\n" + "@SP\n" + "A=M\n" + "M=D\n" + "@SP\n" + "M=M+1\n"
-				+ pushToStack("LCL", false) + pushToStack("ARG", false) + pushToStack("THIS", false)
-				+ pushToStack("THAT", false) + "@" + (numArgs + 5) + "\n" + "D=A\n" + "@SP\n" + /* evtl */"A=M\n"
-				+ "D=A-D\n" + "@ARG\n" + "M=D\n" + "@SP\n" + "D=M\n" + "@LCL\n" + "M=D\n" + "@" + functionName + "\n"
-				+ "0;JMP\n" + LABEL("RETURN_ADDRESS" + counters[1]);
+		return "@" + functionName + "$RETURN_ADDRESS" + counters[1] + "\n" + "D=A\n" + "@SP\n" + "A=M\n" + "M=D\n"
+				+ "@SP\n" + "M=M+1\n" + pushToStack("LCL", false) + pushToStack("ARG", false)
+				+ pushToStack("THIS", false) + pushToStack("THAT", false) + "@" + (numArgs + 5) + "\n" + "D=A\n"
+				+ "@SP\n" + /* evtl */"A=M\n" + "D=A-D\n" + "@ARG\n" + "M=D\n" + "@SP\n" + "D=M\n" + "@LCL\n" + "M=D\n"
+				+ "@" + functionName + "\n" + "0;JMP\n" + "(" + functionName + "$RETURN_ADDRESS" + counters[1] + ")\n";
 	}
 
 	private String pushToStack(String register, boolean direct) {

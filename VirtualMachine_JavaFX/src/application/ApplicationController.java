@@ -24,8 +24,11 @@ public class ApplicationController {
 	@FXML // fx:id="fielNameField"
 	private TextField fileNameField; // Value injected by FXMLLoader
 
-	@FXML // fx:id="multipleFiles"
+	@FXML // fx:id="multipleFiles" // Value injected by FXMLLoader
 	private CheckBox multipleFiles;
+
+	@FXML // fx:id="bootstrap" // Value injected by FXMLLoader
+	private CheckBox bootstrap;
 
 	@FXML // fx:id="errLabel"
 	private Label errLabel; // Value injected by FXMLLoader
@@ -51,7 +54,7 @@ public class ApplicationController {
 			errLabel.setVisible(true);
 		else {
 			errLabel.setVisible(false);
-			this.vm.vmToAsm(this, multipleFiles.isSelected());
+			this.vm.vmToAsm(this, multipleFiles.isSelected(), bootstrap.isSelected());
 		}
 	}
 

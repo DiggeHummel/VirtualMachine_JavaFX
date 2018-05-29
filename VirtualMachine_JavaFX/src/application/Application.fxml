@@ -14,7 +14,8 @@
 		<HBox alignment="CENTER" spacing="20">
 			<Button fx:id="compileButton" mnemonicParsing="false"
 				onAction="#compileOnAction" text="new Compile"></Button>
-				<CheckBox fx:id="multipleFiles" text="multipleFiles"></CheckBox>
+			<CheckBox fx:id="multipleFiles" text="multipleFiles"></CheckBox>
+			<CheckBox fx:id="bootstrap" text="bootstrapping" selected="true"></CheckBox>
 			<TextField fx:id="fileNameField"></TextField>
 			<Label fx:id="errLabel" text="Dateiname fehlt" visible="false"></Label>
 		</HBox>
