@@ -118,8 +118,8 @@ public final class Translator {
 
 	private String POP(String segment, int index, boolean dissolvePTR) {
 		return "@" + segment + "\n" + (dissolvePTR ? this.DISSOLVE_POINTER : "") + "D=A\n" + "@" + index + "\n"
-				+ "D=A+D\n" + "@R13\n" + "M=D\n" + "@SP\n" + "M=M-1\n" + "A=M\n" + "D=M\n" + "@R13\n" + "A=M\n"
-				+ "M=D\n";
+				+ "D=A+D\n" + "@R13\n" + "M=D\n" + "@SP\n" + "A=M-1\n" + "D=M\n" + "@R13\n" + "A=M\n" + "M=D\n"
+				+ "@SP\n" + "M=M-1";
 	}
 
 	private String PUSH_STATIC(String segment) {
@@ -127,7 +127,7 @@ public final class Translator {
 	}
 
 	private String POP_STATIC(String segment) {
-		return  "@SP\n" + "M=M-1\n" + "A=M\n" + "D=M\n" + "@" + segment + "\n" + "M=D\n";
+		return "@SP\n" + "M=M-1\n" + "A=M\n" + "D=M\n" + "@" + segment + "\n" + "M=D\n";
 	}
 
 	private String CONSTANT(int index) {
