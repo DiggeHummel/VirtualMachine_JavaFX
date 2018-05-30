@@ -37,8 +37,11 @@ public class VirtualMachine {
 		// compile
 		for (File in : selFiles) {
 			Parser parser = new Parser(in);
-			if (bootstrap)
-				cw.writeFileName(in.getName());
+			if (bootstrap) {
+				cw.writeBootstrap(in.getName());
+				bootstrap = false;
+			}
+			cw.writeFileName(in.getName());
 			while (parser.hasNextCommand()) {
 				parser.advance();
 				controller.addBeforeArea(parser.CommandToGUI());

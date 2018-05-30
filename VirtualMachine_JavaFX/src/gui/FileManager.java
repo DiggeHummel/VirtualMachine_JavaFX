@@ -24,7 +24,8 @@ public class FileManager {
 		// init Chooser
 		FileChooser chooser = new FileChooser();
 		chooser.setTitle(FileManager.DEFAULT);
-		chooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter(".asm", ".asm"));
+		FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("vm Files", "*.vm");
+		chooser.getExtensionFilters().add(extFilter);
 
 		// last directory
 		if (lastDirectory != null)
@@ -32,13 +33,11 @@ public class FileManager {
 
 		List<File> selFiles = chooser.showOpenMultipleDialog(new Stage());
 
-		// new last directory
-		if (selFiles != null)
+		// new last directory & new last fileName
+		if (selFiles != null) {
 			lastDirectory = selFiles.get(0).getParentFile();
-
-		// new last fileName
-		fileName = StringModifier.substring(selFiles.get(0).getName(), 0, ".");
-
+			fileName = StringModifier.substring(selFiles.get(0).getName(), 0, ".");
+		}
 		return selFiles;
 	}
 

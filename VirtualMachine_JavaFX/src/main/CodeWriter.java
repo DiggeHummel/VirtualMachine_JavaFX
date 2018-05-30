@@ -31,24 +31,31 @@ public class CodeWriter {
 	public void writeCommand(Command c) {
 		try {
 			String code = translator.getASMCode(c);
-			code = /* "//" + c.getCommand() + "\r\n" + */code.replaceAll("\n", "\r\n");
-			this.controller.addAfterArea("//" + c.getCommand() + "\r\n" + code);
+			code = "//" + c.getCommand() + "\r\n" + code.replaceAll("\n", "\r\n");
+			this.controller.addAfterArea(code);
 			bw.write(code);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
+	public void writeBootstrap(String fileName) {
+		if (!fileName.equals("Sys.vm")) {
+			try {
+				String boot = "//bootstrap \r\n" + translator.bootstrap().replaceAll("\n", "\r\n");
+				this.controller.addAfterArea(boot);
+				bw.write(boot);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	public void writeFileName(String fileName) {
 		try {
 			this.controller.addAfterArea("//new File: " + fileName);
-			// bw.write("//new File: " + fileName + "\r\n");
-			if (!fileName.equals("Sys.vm")) {
-				String boot = /* "//bootstrap \r\n" + */translator.bootstrap().replaceAll("\n", "\r\n");
-				this.controller.addAfterArea("//bootstrap \r\n" + boot);
-				bw.write(boot);
-			}
-
+			bw.write("//new File: " + fileName + "\r\n");
+			translator.setFileName(fileName);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

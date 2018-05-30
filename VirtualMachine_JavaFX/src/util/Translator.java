@@ -12,11 +12,13 @@ public final class Translator {
 
 	/* final variables */
 	private final String DISSOLVE_POINTER = "A=M\n";
+	private final String INIT_STACK_POINTER = "@256\n" + "D=A\n" + "@SP\n" + "M=D\n";
 	private final HashMap<String, String> map;
 
 	/* variables */
 	private String functionName = "";
-	private int[] counters = { -1, 0, 0 }; // Instruction[0] LABEL[1] JMP[2]
+	private int[] counters = { 0, 0 }; // LABEL[0] JMP[1]
+	private String filename;
 
 	/* constructor */
 	public Translator() {
@@ -40,13 +42,10 @@ public final class Translator {
 
 	/* public methods */
 	public String getASMCode(Command c) {
-		/*
-		 * if (c.getType() != CommandType.C_LABEL) counters[0]++;
-		 */
 		switch (c.getType()) {
 		case C_ARITHMETIC:
 			if (c.getFlag().equals(JMP_FLAG)) {
-				counters[2]++;
+				counters[1]++;
 				return ARITHMETIC_JMP(map.get(c.getCommand()));
 			} else
 				return map.get(c.getCommand());
@@ -55,11 +54,15 @@ public final class Translator {
 				return CONSTANT(c.getArg2());
 			else if (c.getFlag().equals(POINTER_FLAG))
 				return POINTER(c.getCommand(), c.getArg1(), c.getArg2());
+			else if (c.getArg1().equals("static"))
+				return PUSH_STATIC(filename + "." + c.getArg2());
 			else
 				return PUSH(map.get(c.getArg1()), c.getArg2(), isPointerSegment(c.getArg1()));
 		case C_POP:
 			if (c.getFlag().equals(POINTER_FLAG))
 				return POINTER(c.getCommand(), c.getArg1(), c.getArg2());
+			else if (c.getArg1().equals("static"))
+				return POP_STATIC(filename + "." + c.getArg2());
 			else
 				return POP(map.get(c.getArg1()), c.getArg2(), isPointerSegment(c.getArg1()));
 		case C_LABEL:
@@ -69,7 +72,7 @@ public final class Translator {
 		case C_IF:
 			return IF(c.getArg1());
 		case C_CALL:
-			counters[1]++;
+			counters[0]++;
 			return CALL(c.getArg1(), c.getArg2());
 		case C_RETURN:
 			return RETURN();
@@ -87,20 +90,25 @@ public final class Translator {
 
 	public String bootstrap() {
 		this.functionName = "Sys.init";
-		String ret = "@256\n" + "D=A\n" + "@SP\n" + "M=D\n" + CALL("Sys.init", 0);
+		String ret = this.INIT_STACK_POINTER + CALL("Sys.init", 0);
+		counters[0]++;
 		this.functionName = "";
 		return ret;
 	}
 
+	public void setFileName(String fname) {
+		this.filename = StringModifier.substring(fname, 0, ".");
+	}
+
 	/* private methods */
 	private String INIT() {
-		return "@256\n" + "D=A\n" + "@SP\n" + "M=D\n" + CALL("Sys.init", 0) + "(Sys.init)\n";
+		return this.INIT_STACK_POINTER + CALL("Sys.init", 0) + "(Sys.init)\n";
 	}
 
 	private String ARITHMETIC_JMP(String JMP_Case) {
-		return "@SP\n" + "AM=M-1\n" + "D=M\n" + "A=A-1\n" + "D=M-D\n" + "@PUT_TRUE" + counters[2] + "\n" + "D;"
-				+ JMP_Case + "\n" + "@SP\n" + "A=M-1\n" + "M=0\n" + "@SKIP" + counters[2] + "\n" + "0;JMP\n"
-				+ "(PUT_TRUE" + counters[2] + ")\n" + "@SP\n" + "A=M-1\n" + "M=-1\n" + "(SKIP" + counters[2] + ")\n";
+		return "@SP\n" + "AM=M-1\n" + "D=M\n" + "A=A-1\n" + "D=M-D\n" + "@PUT_TRUE" + counters[1] + "\n" + "D;"
+				+ JMP_Case + "\n" + "@SP\n" + "A=M-1\n" + "M=0\n" + "@SKIP" + counters[1] + "\n" + "0;JMP\n"
+				+ "(PUT_TRUE" + counters[1] + ")\n" + "@SP\n" + "A=M-1\n" + "M=-1\n" + "(SKIP" + counters[1] + ")\n";
 	}
 
 	private String PUSH(String segment, int index, boolean dissolvePTR) {
@@ -110,8 +118,16 @@ public final class Translator {
 
 	private String POP(String segment, int index, boolean dissolvePTR) {
 		return "@" + segment + "\n" + (dissolvePTR ? this.DISSOLVE_POINTER : "") + "D=A\n" + "@" + index + "\n"
-				+ "D=A+D\n" + "@R13\n" + "M=D\n" + "@SP\n" + "A=M-1\n" + "D=M\n" + "@R13\n" + "A=M\n" + "M=D\n"
-				+ "@SP\n" + "M=M-1\n";
+				+ "D=A+D\n" + "@R13\n" + "M=D\n" + "@SP\n" + "M=M-1\n" + "A=M\n" + "D=M\n" + "@R13\n" + "A=M\n"
+				+ "M=D\n";
+	}
+
+	private String PUSH_STATIC(String segment) {
+		return "@" + segment + "\n" + "D=M\n" + "@SP\n" + "A=M\n" + "M=D\n" + "@SP\n" + "M=M+1\n";
+	}
+
+	private String POP_STATIC(String segment) {
+		return  "@SP\n" + "M=M-1\n" + "A=M\n" + "D=M\n" + "@" + segment + "\n" + "M=D\n";
 	}
 
 	private String CONSTANT(int index) {
@@ -127,15 +143,15 @@ public final class Translator {
 	}
 
 	private String IF(String arg) {
-		return "@SP\n" + "M=M-1\n" + "D=M\n" + "@" + this.functionName + "$" + arg + "\n" + "D;JNE\n";
+		return "@SP\n" + "AM=M-1\n" + "D=M\n" + "A=A-1\n" + "@" + this.functionName + "$" + arg + "\n" + "D;JNE\n";
 	}
 
 	private String CALL(String functionName, int numArgs) {
-		return "@" + functionName + "$RETURN_ADDRESS" + counters[1] + "\n" + "D=A\n" + "@SP\n" + "A=M\n" + "M=D\n"
+		return "@" + functionName + "$RETURN_ADDRESS" + counters[0] + "\n" + "D=A\n" + "@SP\n" + "A=M\n" + "M=D\n"
 				+ "@SP\n" + "M=M+1\n" + pushToStack("LCL", false) + pushToStack("ARG", false)
 				+ pushToStack("THIS", false) + pushToStack("THAT", false) + "@" + (numArgs + 5) + "\n" + "D=A\n"
-				+ "@SP\n" + /* evtl */"A=M\n" + "D=A-D\n" + "@ARG\n" + "M=D\n" + "@SP\n" + "D=M\n" + "@LCL\n" + "M=D\n"
-				+ "@" + functionName + "\n" + "0;JMP\n" + "(" + functionName + "$RETURN_ADDRESS" + counters[1] + ")\n";
+				+ "@SP\n" + "A=M\n" + "D=A-D\n" + "@ARG\n" + "M=D\n" + "@SP\n" + "D=M\n" + "@LCL\n" + "M=D\n" + "@"
+				+ functionName + "\n" + "0;JMP\n" + "(" + functionName + "$RETURN_ADDRESS" + counters[0] + ")\n";
 	}
 
 	private String pushToStack(String register, boolean direct) {
